@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Planillas - Instituto Gastronómico</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        /* Pestañas */
+        .tabs {
+            display: flex;
+            background: #2c3e50;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .tab:hover {
+            background: #34495e;
+        }
+        
+        .tab.active {
+            background: #2980b9;
+            font-weight: bold;
+        }
+        
+        /* Contenido de pestañas */
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Formularios */
+        .form-columns {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-column {
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        /* Resultados */
+        .result-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin-top: 20px;
+        }
+        
+        .total-pagar {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        /* Foto del empleado */
+        .foto-empleado {
+            width: 120px;
+            height: 150px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            object-fit: cover;
+        }
+        
+        /* Tabla de empleados */
+        .empleados-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .empleados-table th, 
+        .empleados-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .empleados-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .empleados-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Estilos para la boleta de pago */
+        .boleta-container {
+            width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .boleta-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .boleta-logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .boleta-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .boleta-subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        
+        .boleta-info {
+            margin: 20px 0;
+        }
+        
+        .boleta-info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .boleta-info-label {
+            width: 200px;
+            font-weight: bold;
+        }
+        
+        .boleta-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .boleta-details th, 
+        .boleta-details td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .boleta-details th {
+            background-color: #f2f2f2;
+        }
+        
+        .boleta-total {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        
+        .boleta-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed #7f8c8d;
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .boleta-container, .boleta-container * {
+                visibility: visible;
+            }
+            .boleta-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pestañas -->
+        <div class="tabs">
+            <div class="tab active" onclick="mostrarPestana('login')">Inicio Sesión</div>
+            <div class="tab" onclick="mostrarPestana('registro')">Registro</div>
+            <div class="tab" onclick="mostrarPestana('planilla')">Planilla</div>
+            <div class="tab" onclick="mostrarPestana('perfil')">Perfil</div>
+            <div class="tab" onclick="mostrarPestana('lista-empleados')">Lista de Empleados</div>
+            <div class="tab" onclick="mostrarPestana('boleta')">Boleta de Pago</div>
+        </div>
+        
+        <!-- Contenido de pestañas -->
+        
+        <!-- Pestaña 1: Login -->
+        <div id="login" class="tab-content active">
+            <h2>Inicio de Sesión</h2>
+            <div class="form-group">
+                <label for="usuario">Usuario:</label>
+                <select id="usuario">
+                    <option value="recursos-humanos">Recursos Humanos</option>
+                    <option value="dueño">Dueño</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" placeholder="Ingrese su contraseña">
+            </div>
+            <button onclick="iniciarSesion()">Ingresar</button>
+        </div>
+        
+        <!-- Pestaña 2: Registro -->
+        <div id="registro" class="tab-content">
+            <h2>Registro de Empleado</h2>
+            <div class="form-columns">
+                <!-- Columna izquierda -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="codigo-empleado">Código de Empleado:</label>
+                        <input type="text" id="codigo-empleado" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombres:</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido-paterno">Apellido Paterno:</label>
+                        <input type="text" id="apellido-paterno" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido-materno">Apellido Materno:</label>
+                        <input type="text" id="apellido-materno">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo-empleado">Tipo de Empleado:</label>
+                        <select id="tipo-empleado" required onchange="actualizarCamposSueldo()">
+                            <option value="">Seleccione...</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="docente">Docente</option>
+                            <option value="practicante">Practicante</option>
+                        </select>
+                    </div>
+                    
+                    <div id="grupo-subtipo-docente" style="display:none;">
+                        <div class="form-group">
+                            <label for="subtipo-docente">Tipo de Docente:</label>
+                            <select id="subtipo-docente">
+                                <option value="antiguo">Docente Antiguo (5+ años, S/25/h)</option>
+                                <option value="nuevo">Docente Nuevo (1 año o menos, S/15/h)</option>
+                                <option value="ayudante">Ayudante de Docente (S/10/h)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="grupo-sueldo-fijo" style="display:none;">
+                        <div class="form-group">
+                            <label for="sueldo">Sueldo Base (S/):</label>
+                            <input type="number" id="sueldo" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div id="grupo-horas-trabajo" style="display:none;">
+                        <div class="form-group">
+                            <label for="horas-semana">Horas por semana:</label>
+                            <input type="number" id="horas-semana" min="0" step="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha-ingreso">Fecha de Ingreso:</label>
+                        <input type="date" id="fecha-ingreso" required>
+                    </div>
+                </div>
+                
+                <!-- Columna derecha -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="foto-empleado">Foto Carnet:</label>
+                        <input type="file" id="foto-empleado" accept="image/*">
+                        <img id="preview-foto" class="foto-empleado" style="display:none;">
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI:</label>
+                        <input type="text" id="dni" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección:</label>
+                        <input type="text" id="direccion">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="tel" id="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado Civil:</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" name="estado-civil" id="soltero" value="soltero" checked>
+                                <label for="soltero">Soltero</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="estado-civil" id="casado" value="casado">
+                                <label for="casado">Casado</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="estado-civil" id="divorciado" value="divorciado">
+                                <label for="divorciado">Divorciado</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hijos">Hijos menores de 18 años:</label>
+                        <input type="number" id="hijos" min="0" value="0">
+                    </div>
+                </div>
+            </div>
+            <button onclick="guardarEmpleado()">Guardar Empleado</button>
+        </div>
+        
+        <!-- Pestaña 3: Planilla -->
+        <div id="planilla" class="tab-content">
+            <h2>Cálculo de Planilla</h2>
+            <div class="form-group">
+                <label for="codigo-empleado-planilla">Código de Empleado:</label>
+                <input type="text" id="codigo-empleado-planilla" required>
+                <button onclick="buscarEmpleadoPlanilla()">Buscar</button>
+            </div>
+            
+            <div id="info-empleado-planilla" style="display:none;">
+                <h3 id="nombre-empleado-planilla"></h3>
+                <p>Tipo: <span id="tipo-empleado-planilla"></span></p>
+                <p id="info-sueldo-planilla"></p>
+            </div>
+            
+            <div class="form-columns">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="mes-planilla">Mes:</label>
+                        <input type="month" id="mes-planilla" required>
+                    </div>
+                    
+                    <div id="grupo-horas-docente" style="display:none;">
+                        <div class="form-group">
+                            <label for="horas-trabajadas">Horas trabajadas:</label>
+                            <input type="number" id="horas-trabajadas" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="horas-extras">Horas extras:</label>
+                            <input type="number" id="horas-extras" step="0.01" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dias-faltas">Días de falta:</label>
+                        <input type="number" id="dias-faltas" min="0" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="horas-tardanza">Horas de tardanza:</label>
+                        <input type="number" id="horas-tardanza" min="0" value="0" step="0.25">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trabajo-domingo">Trabajó domingo:</label>
+                        <select id="trabajo-domingo">
+                            <option value="no">No</option>
+                            <option value="si">Sí</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="form-group">
+                        <label>Sistema de pensiones:</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" name="sistema-pensiones" id="afp" value="afp" checked>
+                                <label for="afp">AFP (13%)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="sistema-pensiones" id="onp" value="onp">
+                                <label for="onp">ONP (10%)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gratificacion">Gratificación:</label>
+                        <select id="gratificacion">
+                            <option value="no">No aplica</option>
+                            <option value="julio">Julio</option>
+                            <option value="diciembre">Diciembre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="vacaciones">Vacaciones:</label>
+                        <select id="vacaciones">
+                            <option value="no">No aplica</option>
+                            <option value="si">Sí aplica</option>
+                        </select>
+                    </div>
+                    
+                    <div class="result-box">
+                        <h3>Resultados</h3>
+                        <div class="form-group">
+                            <label>Sueldo Bruto:</label>
+                            <div id="sueldo-bruto">S/0.00</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Descuentos:</label>
+                            <div id="total-descuentos">S/0.00</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Total a pagar (Neto):</label>
+                            <div class="total-pagar" id="total-pagar">S/0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="calcularPlanilla()">Calcular Planilla</button>
+            <button onclick="guardarPlanilla()" style="background:#27ae60;">Guardar Planilla</button>
+        </div>
+        
+        <!-- Pestaña 4: Perfil -->
+        <div id="perfil" class="tab-content">
+            <h2>Perfil del Empleado</h2>
+            <div class="form-group">
+                <label for="codigo-empleado-perfil">Código de Empleado:</label>
+                <input type="text" id="codigo-empleado-perfil">
+                <button onclick="buscarEmpleadoPerfil()">Buscar</button>
+            </div>
+            
+            <div id="info-empleado-perfil" style="display:none;">
+                <div class="form-columns">
+                    <div class="form-column">
+                        <img id="foto-empleado-perfil" class="foto-empleado">
+                        <h3 id="nombre-empleado-perfil"></h3>
+                        <p><strong>Código:</strong> <span id="codigo-empleado-perfil-texto"></span></p>
+                        <p><strong>DNI:</strong> <span id="dni-empleado-perfil"></span></p>
+                        <p><strong>Tipo:</strong> <span id="tipo-empleado-perfil"></span></p>
+                        <p><strong>Sueldo Base:</strong> <span id="sueldo-base-empleado-perfil"></span></p>
+                        <p><strong>Sueldo Neto Promedio:</strong> <span id="sueldo-neto-empleado-perfil"></span></p>
+                    </div>
+                    <div class="form-column">
+                        <p><strong>Dirección:</strong> <span id="direccion-empleado-perfil"></span></p>
+                        <p><strong>Teléfono:</strong> <span id="telefono-empleado-perfil"></span></p>
+                        <p><strong>Estado Civil:</strong> <span id="estado-civil-empleado-perfil"></span></p>
+                        <p><strong>Fecha de Ingreso:</strong> <span id="fecha-ingreso-empleado-perfil"></span></p>
+                        <p><strong>Hijos menores:</strong> <span id="hijos-empleado-perfil"></span></p>
+                        
+                        <h4>Historial de Planillas</h4>
+                        <div id="historial-planillas"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pestaña 5: Lista de Empleados -->
+        <div id="lista-empleados" class="tab-content">
+            <h2>Lista de Empleados</h2>
+            <table class="empleados-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre Completo</th>
+                        <th>Tipo</th>
+                        <th>Sueldo Base</th>
+                        <th>Sueldo Neto Promedio</th>
+                        <th>Fecha Ingreso</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-empleados">
+                    <!-- Datos se cargarán con JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pestaña 6: Boleta de Pago -->
+        <div id="boleta" class="tab-content">
+            <h2>Generar Boleta de Pago</h2>
+            <div class="form-group">
+                <label for="codigo-empleado-boleta">Código de Empleado:</label>
+                <input type="text" id="codigo-empleado-boleta">
+                <button onclick="buscarEmpleadoBoleta()">Buscar</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="mes-boleta">Mes de emisión:</label>
+                <input type="month" id="mes-boleta">
+            </div>
+            
+            <div id="boleta-pago-container" style="display:none;">
+                <div class="boleta-container" id="boleta-print">
+                    <div class="boleta-header">
+                        <img src="logo-instituto.png" alt="Logo del Instituto" class="boleta-logo">
+                        <div class="boleta-title">INSTITUTO GASTRONÓMICO</div>
+                        <div class="boleta-subtitle">BOLETA DE PAGO</div>
+                    </div>
+                    
+                    <div class="boleta-info">
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">Empleado:</div>
+                            <div id="boleta-nombre"></div>
+                        </div>
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">Código:</div>
+                            <div id="boleta-codigo"></div>
+                        </div>
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">DNI:</div>
+                            <div id="boleta-dni"></div>
+                        </div>
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">Puesto:</div>
+                            <div id="boleta-puesto"></div>
+                        </div>
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">Mes:</div>
+                            <div id="boleta-mes"></div>
+                        </div>
+                        <div class="boleta-info-row">
+                            <div class="boleta-info-label">Fecha de emisión:</div>
+                            <div id="boleta-fecha-emision"></div>
+                        </div>
+                    </div>
+                    
+                    <table class="boleta-details">
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Ingresos (S/)</th>
+                                <th>Descuentos (S/)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boleta-detalles">
+                            <!-- Detalles se llenarán con JavaScript -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="boleta-total">
+                        <div>Total Neto a Pagar: <span id="boleta-total-pagar"></span></div>
+                    </div>
+                    
+                    <div class="boleta-footer">
+                        <p>Este documento es generado automáticamente por el sistema de planillas</p>
+                    </div>
+                </div>
+                
+                <button onclick="imprimirBoleta()" class="no-print" style="background:#27ae60;">Imprimir Boleta</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let empleados = [];
+        let empleadoActual = null;
+        let usuarioLogueado = null;
+        
+        // Mostrar/ocultar pestañas
+        function mostrarPestana(pestana) {
+            if (pestana !== 'login' && !usuarioLogueado) {
+                alert('Debe iniciar sesión primero');
+                mostrarPestana('login');
+                return;
+            }
+            
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(pestana).classList.add('active');
+            
+            // Actualizar pestañas activas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activar la pestaña clickeada
+            event.currentTarget.classList.add('active');
+            
+            // Si es la pestaña de lista de empleados, cargarlos
+            if (pestana === 'lista-empleados') {
+                cargarListaEmpleados();
+            }
+        }
+        
+        // Actualizar campos según tipo de empleado
+        function actualizarCamposSueldo() {
+            const tipoEmpleado = document.getElementById('tipo-empleado').value;
+            
+            // Ocultar todos los grupos primero
+            document.getElementById('grupo-subtipo-docente').style.display = 'none';
+            document.getElementById('grupo-sueldo-fijo').style.display = 'none';
+            document.getElementById('grupo-horas-trabajo').style.display = 'none';
+            
+            // Mostrar campos relevantes según tipo
+            if (tipoEmpleado === 'docente') {
+                document.getElementById('grupo-subtipo-docente').style.display = 'block';
+                document.getElementById('grupo-horas-trabajo').style.display = 'block';
+            } else if (tipoEmpleado === 'administrativo' || tipoEmpleado === 'practicante') {
+                document.getElementById('grupo-sueldo-fijo').style.display = 'block';
+            }
+        }
+        
+        // Iniciar sesión
+        function iniciarSesion() {
+            const usuario = document.getElementById('usuario').value;
+            const contrasena = document.getElementById('contrasena').value;
+            
+            if ((usuario === 'recursos-humanos' && contrasena === '1111') || 
+                (usuario === 'dueño' && contrasena === '0000')) {
+                usuarioLogueado = usuario;
+                mostrarPestana('registro');
+            } else {
+                alert('Contraseña incorrecta');
+            }
+        }
+        
+        // Guardar empleado
+        function guardarEmpleado() {
+    const codigo = document.getElementById('codigo-empleado').value;
+    const nombre = document.getElementById('nombre').value;
+    const apellidoPaterno = document.getElementById('apellido-paterno').value;
+    const apellidoMaterno = document.getElementById('apellido-materno').value;
+    const tipoEmpleado = document.getElementById('tipo-empleado').value;
+    const subtipoDocente = tipoEmpleado === 'docente' ? document.getElementById('subtipo-docente').value : null;
+    const sueldo = tipoEmpleado !== 'docente' ? parseFloat(document.getElementById('sueldo').value) : null;
+    const horasSemana = tipoEmpleado === 'docente' ? parseInt(document.getElementById('horas-semana').value) : null;
+    const dni = document.getElementById('dni').value;
+    const direccion = document.getElementById('direccion').value;
+    const telefono = document.getElementById('telefono').value;
+    const estadoCivil = document.querySelector('input[name="estado-civil"]:checked').value;
+    const fechaIngreso = document.getElementById('fecha-ingreso').value;
+    const hijos = parseInt(document.getElementById('hijos').value) || 0;
+    // Validar campos obligatorios
+    if (!codigo || !nombre || !apellidoPaterno || !tipoEmpleado || !dni || !fechaIngreso) {
+        alert('Por favor complete todos los campos obligatorios');
+        return;
+    }
+    // Validaciones específicas por tipo de empleado
+    if (tipoEmpleado === 'docente' && !horasSemana) {
+        alert('Por favor ingrese las horas de trabajo semanales');
+        return;
+    }
+    if ((tipoEmpleado === 'administrativo' || tipoEmpleado === 'practicante') && !sueldo) {
+        alert('Por favor ingrese el sueldo base');
+        return;
+    }
+    
+    // Verificar si el código ya existe
+    if (empleados.some(emp => emp.codigo === codigo)) {
+        alert('Ya existe un empleado con este código');
+        return;
+    }
+
+    // Obtener foto (si se subió)
+    const fotoInput = document.getElementById('foto-empleado');
+    let foto = null;
+
+    if (fotoInput.files && fotoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            foto = e.target.result;
+            guardarDatosEmpleado();
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+    } else {
+        guardarDatosEmpleado();
+    }
+
+    function guardarDatosEmpleado() {
+        const empleado = {
+            codigo,
+            nombre,
+            apellidoPaterno,
+            apellidoMaterno,
+            tipoEmpleado,
+            subtipoDocente,
+            sueldo,
+            horasSemana,
+            dni,
+            direccion,
+            telefono,
+            estadoCivil,
+            fechaIngreso,
+            hijos,
+            foto,
+            planillas: []
+        };
+
+        empleados.push(empleado);
+
+        document.getElementById('registro').querySelectorAll('input').forEach(input => {
+            if (input.type !== 'radio' && input.type !== 'file') {
+                input.value = '';
+            }
+        });
+        document.getElementById('preview-foto').style.display = 'none';
+        document.getElementById('soltero').checked = true;
+        document.getElementById('tipo-empleado').value = '';
+        document.getElementById('hijos').value = '0';
+
+        alert('Empleado registrado exitosamente');
+    }
+
+        }
+        
+        // Buscar empleado para planilla
+        function buscarEmpleadoPlanilla() {
+            const codigo = document.getElementById('codigo-empleado-planilla').value;
+            empleadoActual = empleados.find(emp => emp.codigo === codigo);
+            
+            if (empleadoActual) {
+                document.getElementById('info-empleado-planilla').style.display = 'block';
+                document.getElementById('nombre-empleado-planilla').textContent = 
+                    `${empleadoActual.nombre} ${empleadoActual.apellidoPaterno} ${empleadoActual.apellidoMaterno}`;
+                
+                // Mostrar información según tipo de empleado
+                let tipoTexto = '';
+                let sueldoInfo = '';
+                
+                if (empleadoActual.tipoEmpleado === 'docente') {
+                    tipoTexto = 'Docente';
+                    if (empleadoActual.subtipoDocente === 'antiguo') {
+                        tipoTexto += ' (Antiguo - S/25 por hora)';
+                    } else if (empleadoActual.subtipoDocente === 'nuevo') {
+                        tipoTexto += ' (Nuevo - S/15 por hora)';
+                    } else {
+                        tipoTexto += ' (Ayudante - S/10 por hora)';
+                    }
+                    sueldoInfo = `Horas semanales: ${empleadoActual.horasSemana}`;
+                } else if (empleadoActual.tipoEmpleado === 'administrativo') {
+                    tipoTexto = 'Administrativo';
+                    sueldoInfo = `Sueldo base: S/${empleadoActual.sueldo.toFixed(2)}`;
+                } else {
+                    tipoTexto = 'Practicante';
+                    sueldoInfo = `Sueldo base: S/${empleadoActual.sueldo.toFixed(2)}`;
+                }
+                
+                document.getElementById('tipo-empleado-planilla').textContent = tipoTexto;
+                document.getElementById('info-sueldo-planilla').textContent = sueldoInfo;
+                
+                // Mostrar/ocultar campos según tipo de empleado
+                document.getElementById('grupo-horas-docente').style.display = 
+                    empleadoActual.tipoEmpleado === 'docente' ? 'block' : 'none';
+            } else {
+                alert('No se encontró el empleado con ese código');
+            }
+        }
+        
+        // Calcular planilla
+        function calcularPlanilla() {
+            if (!empleadoActual) {
+                alert('Primero busque un empleado');
+                return;
+            }
+            
+            const mes = document.getElementById('mes-planilla').value;
+            if (!mes) {
+                alert('Seleccione un mes');
+                return;
+            }
+            
+            // Variables comunes
+            const sistemaPensiones = document.querySelector('input[name="sistema-pensiones"]:checked').value;
+            const diasFaltas = parseInt(document.getElementById('dias-faltas').value) || 0;
+            const horasTardanza = parseFloat(document.getElementById('horas-tardanza').value) || 0;
+            const trabajoDomingo = document.getElementById('trabajo-domingo').value === 'si';
+            const gratificacion = document.getElementById('gratificacion').value;
+            const vacaciones = document.getElementById('vacaciones').value === 'si';
+            
+            // Variables para cálculos
+            let sueldoBase = 0;
+            let bonificacion = 0;
+            let sueldoBruto = 0;
+            let descuentos = 0;
+            let asignacionFamiliar = 0;
+            let detalles = [];
+            
+            // Cálculos según tipo de empleado
+            if (empleadoActual.tipoEmpleado === 'docente') {
+                const horasTrabajadas = parseFloat(document.getElementById('horas-trabajadas').value) || 0;
+                const horasExtras = parseFloat(document.getElementById('horas-extras').value) || 0;
+                
+                // Tarifa por hora según tipo de docente
+                let tarifaHora = 0;
+                if (empleadoActual.subtipoDocente === 'antiguo') {
+                    tarifaHora = 25;
+                } else if (empleadoActual.subtipoDocente === 'nuevo') {
+                    tarifaHora = 15;
+                } else {
+                    tarifaHora = 10;
+                }
+                
+                sueldoBase = horasTrabajadas * tarifaHora;
+                const pagoHorasExtras = horasExtras * tarifaHora * 1.5; // 50% más por horas extras
+                
+                // Bonificación para docentes (4%)
+                bonificacion = sueldoBase * 0.04;
+                
+                sueldoBruto = sueldoBase + pagoHorasExtras + bonificacion;
+                
+                detalles.push({ concepto: 'Sueldo base', monto: sueldoBase, tipo: 'ingreso' });
+                if (pagoHorasExtras > 0) {
+                    detalles.push({ concepto: 'Horas extras', monto: pagoHorasExtras, tipo: 'ingreso' });
+                }
+                if (bonificacion > 0) {
+                    detalles.push({ concepto: 'Bonificación docente (4%)', monto: bonificacion, tipo: 'ingreso' });
+                }
+            } 
+            else if (empleadoActual.tipoEmpleado === 'administrativo') {
+                sueldoBase = empleadoActual.sueldo;
+                
+                // Bonificación para administrativos (2%)
+                bonificacion = sueldoBase * 0.02;
+                
+                sueldoBruto = sueldoBase + bonificacion;
+                
+                detalles.push({ concepto: 'Sueldo base', monto: sueldoBase, tipo: 'ingreso' });
+                if (bonificacion > 0) {
+                    detalles.push({ concepto: 'Bonificación administrativo (2%)', monto: bonificacion, tipo: 'ingreso' });
+                }
+            } 
+            else if (empleadoActual.tipoEmpleado === 'practicante') {
+                sueldoBase = empleadoActual.sueldo;
+                
+                // Bonificación para practicantes (5%)
+                bonificacion = sueldoBase * 0.05;
+                
+                sueldoBruto = sueldoBase + bonificacion;
+                
+                detalles.push({ concepto: 'Sueldo base', monto: sueldoBase, tipo: 'ingreso' });
+                if (bonificacion > 0) {
+                    detalles.push({ concepto: 'Bonificación practicante (5%)', monto: bonificacion, tipo: 'ingreso' });
+                }
+            }
+            
+            // Asignación familiar (3% por hijo)
+            if (empleadoActual.hijos > 0) {
+                asignacionFamiliar = sueldoBase * 0.03 * empleadoActual.hijos;
+                sueldoBruto += asignacionFamiliar;
+                detalles.push({ 
+                    concepto: `Asignación familiar (${empleadoActual.hijos} hijos)`, 
+                    monto: asignacionFamiliar, 
+                    tipo: 'ingreso' 
+                });
+            }
+            
+            // Asignación básica (S/113.00)
+            sueldoBruto += 113;
+            detalles.push({ concepto: 'Asignación básica', monto: 113, tipo: 'ingreso' });
+            
+            // Pago por trabajo dominical (doble sueldo)
+            if (trabajoDomingo) {
+                const pagoDomingo = sueldoBase / 30; // Pago por día
+                sueldoBruto += pagoDomingo;
+                detalles.push({ concepto: 'Pago dominical', monto: pagoDomingo, tipo: 'ingreso' });
+            }
+            
+            // Gratificaciones (julio y diciembre)
+            if (gratificacion === 'julio' || gratificacion === 'diciembre') {
+                const gratificacionMonto = sueldoBase;
+                sueldoBruto += gratificacionMonto;
+                detalles.push({ 
+                    concepto: `Gratificación ${gratificacion === 'julio' ? 'de Julio' : 'de Diciembre'}`, 
+                    monto: gratificacionMonto, 
+                    tipo: 'ingreso' 
+                });
+            }
+            
+            // Vacaciones
+            if (vacaciones) {
+                const vacacionesMonto = sueldoBase / 12; // 1 mes por año / 12 meses
+                sueldoBruto += vacacionesMonto;
+                detalles.push({ concepto: 'Vacaciones', monto: vacacionesMonto, tipo: 'ingreso' });
+            }
+            
+            // Descuentos
+            // AFP (13%) u ONP (10%)
+            let descuentoPensiones = 0;
+            if (sistemaPensiones === 'afp') {
+                descuentoPensiones = sueldoBruto * 0.13;
+                detalles.push({ concepto: 'AFP (13%)', monto: descuentoPensiones, tipo: 'descuento' });
+            } else {
+                descuentoPensiones = sueldoBruto * 0.10;
+                detalles.push({ concepto: 'ONP (10%)', monto: descuentoPensiones, tipo: 'descuento' });
+            }
+            descuentos += descuentoPensiones;
+            
+            // EsSalud (S/92.50 fijo)
+            const esSalud = 92.50;
+            descuentos += esSalud;
+            detalles.push({ concepto: 'EsSalud', monto: esSalud, tipo: 'descuento' });
+            
+            // Tardanzas (S/5 por hora)
+            const descuentoTardanza = horasTardanza * 5;
+            if (descuentoTardanza > 0) {
+                descuentos += descuentoTardanza;
+                detalles.push({ concepto: 'Tardanzas', monto: descuentoTardanza, tipo: 'descuento' });
+            }
+            
+            // Faltas (descuento por día completo)
+            const descuentoFaltas = (sueldoBase / 30) * diasFaltas;
+            if (descuentoFaltas > 0) {
+                descuentos += descuentoFaltas;
+                detalles.push({ concepto: 'Faltas', monto: descuentoFaltas, tipo: 'descuento' });
+            }
+            
+            // Total neto a pagar
+            const totalPagar = sueldoBruto - descuentos;
+            
+            // Mostrar resultados
+            document.getElementById('sueldo-bruto').textContent = 'S/' + sueldoBruto.toFixed(2);
+            document.getElementById('total-descuentos').textContent = 'S/' + descuentos.toFixed(2);
+            document.getElementById('total-pagar').textContent = 'S/' + totalPagar.toFixed(2);
+            
+            // Guardar detalles para la boleta
+            empleadoActual.ultimosDetalles = {
+                detalles,
+                sueldoBruto,
+                descuentos,
+                totalPagar,
+                mes
+            };
+        }
+        
+        // Guardar planilla
+        // Guardar planilla - MODIFICADO (eliminado localStorage)
+        function guardarPlanilla() {
+            if (!empleadoActual || !empleadoActual.ultimosDetalles) {
+                alert('Primero calcule la planilla');
+                return;
+            }
+
+            const { detalles, sueldoBruto, descuentos, totalPagar, mes } = empleadoActual.ultimosDetalles;
+
+            const planilla = {
+                fecha: new Date().toLocaleDateString(),
+                mes,
+                sueldoBruto,
+                totalDescuentos: descuentos,
+                totalPagar,
+                detalles
+            };
+
+            empleadoActual.planillas.push(planilla);
+
+            alert('Planilla guardada exitosamente');
+
+            document.getElementById('planilla').querySelectorAll('input').forEach(input => {
+                if (input.type !== 'radio') {
+                    input.value = '';
+                }
+            });
+            document.getElementById('sueldo-bruto').textContent = 'S/0.00';
+            document.getElementById('total-descuentos').textContent = 'S/0.00';
+            document.getElementById('total-pagar').textContent = 'S/0.00';
+        }
+
+        
+        // Buscar empleado para perfil
+        function buscarEmpleadoPerfil() {
+            const codigo = document.getElementById('codigo-empleado-perfil').value;
+            const empleado = empleados.find(emp => emp.codigo === codigo);
+            
+            if (empleado) {
+                document.getElementById('info-empleado-perfil').style.display = 'block';
+                document.getElementById('nombre-empleado-perfil').textContent = 
+                    `${empleado.nombre} ${empleado.apellidoPaterno} ${empleado.apellidoMaterno}`;
+                document.getElementById('codigo-empleado-perfil-texto').textContent = empleado.codigo;
+                document.getElementById('dni-empleado-perfil').textContent = empleado.dni;
+                
+                // Mostrar tipo de empleado
+                let tipoTexto = '';
+                if (empleado.tipoEmpleado === 'docente') {
+                    tipoTexto = 'Docente';
+                    if (empleado.subtipoDocente === 'antiguo') {
+                        tipoTexto += ' (Antiguo)';
+                    } else if (empleado.subtipoDocente === 'nuevo') {
+                        tipoTexto += ' (Nuevo)';
+                    } else {
+                        tipoTexto += ' (Ayudante)';
+                    }
+                } else if (empleado.tipoEmpleado === 'administrativo') {
+                    tipoTexto = 'Administrativo';
+                } else {
+                    tipoTexto = 'Practicante';
+                }
+                document.getElementById('tipo-empleado-perfil').textContent = tipoTexto;
+                
+                // Mostrar sueldo/horas según tipo
+                if (empleado.tipoEmpleado === 'docente') {
+                    document.getElementById('sueldo-base-empleado-perfil').textContent = 
+                        `${empleado.horasSemana} horas/semana`;
+                } else {
+                    document.getElementById('sueldo-base-empleado-perfil').textContent = 
+                        empleado.sueldo ? 'S/' + empleado.sueldo.toFixed(2) : 'No especificado';
+                }
+                
+                // Calcular sueldo neto promedio
+                let sueldoNetoPromedio = 0;
+                if (empleado.planillas.length > 0) {
+                    const total = empleado.planillas.reduce((sum, planilla) => sum + planilla.totalPagar, 0);
+                    sueldoNetoPromedio = total / empleado.planillas.length;
+                }
+                document.getElementById('sueldo-neto-empleado-perfil').textContent = 'S/' + sueldoNetoPromedio.toFixed(2);
+                
+                document.getElementById('direccion-empleado-perfil').textContent = empleado.direccion || 'No especificado';
+                document.getElementById('telefono-empleado-perfil').textContent = empleado.telefono || 'No especificado';
+                document.getElementById('estado-civil-empleado-perfil').textContent = 
+                    empleado.estadoCivil.charAt(0).toUpperCase() + empleado.estadoCivil.slice(1);
+                document.getElementById('fecha-ingreso-empleado-perfil').textContent = empleado.fechaIngreso;
+                document.getElementById('hijos-empleado-perfil').textContent = empleado.hijos;
+                
+                if (empleado.foto) {
+                    document.getElementById('foto-empleado-perfil').src = empleado.foto;
+                    document.getElementById('foto-empleado-perfil').style.display = 'block';
+                } else {
+                    document.getElementById('foto-empleado-perfil').style.display = 'none';
+                }
+                
+                // Mostrar historial de planillas
+                let historialHTML = '';
+                if (empleado.planillas.length > 0) {
+                    historialHTML += '<table style="width:100%; margin-top:10px;"><tr><th>Mes</th><th>Total</th></tr>';
+                    
+                    empleado.planillas.forEach(planilla => {
+                        historialHTML += `
+                            <tr>
+                                <td>${planilla.mes}</td>
+                                <td>S/${planilla.totalPagar.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    historialHTML += '</table>';
+                } else {
+                    historialHTML = '<p>No hay planillas registradas para este empleado</p>';
+                }
+                
+                document.getElementById('historial-planillas').innerHTML = historialHTML;
+            } else {
+                alert('No se encontró el empleado con ese código');
+            }
+        }
+        
+        // Cargar lista de empleados
+        function cargarListaEmpleados() {
+            const tbody = document.getElementById('tabla-empleados');
+            tbody.innerHTML = '';
+            
+            if (empleados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay empleados registrados</td></tr>';
+                return;
+            }
+            
+            empleados.forEach(emp => {
+                const tr = document.createElement('tr');
+                
+                // Calcular sueldo neto promedio
+                let sueldoNetoPromedio = 0;
+                if (emp.planillas.length > 0) {
+                    const total = emp.planillas.reduce((sum, planilla) => sum + planilla.totalPagar, 0);
+                    sueldoNetoPromedio = total / emp.planillas.length;
+                }
+                
+                // Mostrar tipo de empleado
+                let tipoTexto = '';
+                if (emp.tipoEmpleado === 'docente') {
+                    tipoTexto = 'Docente';
+                    if (emp.subtipoDocente === 'antiguo') {
+                        tipoTexto += ' (Antiguo)';
+                    } else if (emp.subtipoDocente === 'nuevo') {
+                        tipoTexto += ' (Nuevo)';
+                    } else {
+                        tipoTexto += ' (Ayudante)';
+                    }
+                } else if (emp.tipoEmpleado === 'administrativo') {
+                    tipoTexto = 'Administrativo';
+                } else {
+                    tipoTexto = 'Practicante';
+                }
+                
+                // Mostrar sueldo/horas según tipo
+                let sueldoInfo = '';
+                if (emp.tipoEmpleado === 'docente') {
+                    sueldoInfo = `${emp.horasSemana} horas/semana`;
+                } else {
+                    sueldoInfo = emp.sueldo ? 'S/' + emp.sueldo.toFixed(2) : 'No especificado';
+                }
+                
+                tr.innerHTML = `
+                    <td>${emp.codigo}</td>
+                    <td>${emp.nombre} ${emp.apellidoPaterno} ${emp.apellidoMaterno}</td>
+                    <td>${tipoTexto}</td>
+                    <td>${sueldoInfo}</td>
+                    <td>S/${sueldoNetoPromedio.toFixed(2)}</td>
+                    <td>${emp.fechaIngreso}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Buscar empleado para boleta
+        function buscarEmpleadoBoleta() {
+            const codigo = document.getElementById('codigo-empleado-boleta').value;
+            const mes = document.getElementById('mes-boleta').value;
+            
+            if (!codigo || !mes) {
+                alert('Complete todos los campos');
+                return;
+            }
+
+            const empleado = empleados.find(emp => emp.codigo === codigo);
+            if (!empleado) {
+                alert('Empleado no encontrado');
+                return;
+            }
+
+            const planilla = empleado.planillas.find(p => p.mes === mes);
+            if (!planilla) {
+                alert('No hay planilla para este mes');
+                return;
+            }
+
+            // Mostrar datos básicos
+            document.getElementById('boleta-pago-container').style.display = 'block';
+            document.getElementById('boleta-nombre').textContent = `${empleado.nombre} ${empleado.apellidoPaterno} ${empleado.apellidoMaterno}`;
+            document.getElementById('boleta-codigo').textContent = empleado.codigo;
+            
+            // Mostrar tipo de empleado como puesto
+            let tipoTexto = '';
+            if (empleado.tipoEmpleado === 'docente') {
+                tipoTexto = 'Docente';
+                if (empleado.subtipoDocente === 'antiguo') {
+                    tipoTexto += ' (Antiguo)';
+                } else if (empleado.subtipoDocente === 'nuevo') {
+                    tipoTexto += ' (Nuevo)';
+                } else {
+                    tipoTexto += ' (Ayudante)';
+                }
+            } else if (empleado.tipoEmpleado === 'administrativo') {
+                tipoTexto = 'Administrativo';
+            } else {
+                tipoTexto = 'Practicante';
+            }
+            document.getElementById('boleta-puesto').textContent = tipoTexto;
+            
+            // Configurar fecha y mes
+            const [anio, mesNum] = mes.split('-');
+            const nombreMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][parseInt(mesNum)-1];
+            document.getElementById('boleta-mes').textContent = `${nombreMes} ${anio}`;
+            document.getElementById('boleta-fecha-emision').textContent = new Date().toLocaleDateString();
+            document.getElementById('boleta-dni').textContent = empleado.dni;
+
+            // Mostrar detalles en tabla
+            const detalles = document.getElementById('boleta-detalles');
+            detalles.innerHTML = '';
+            
+            planilla.detalles.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                if (item.tipo === 'ingreso') {
+                    tr.innerHTML = `
+                        <td>${item.concepto}</td>
+                        <td>S/${item.monto.toFixed(2)}</td>
+                        <td></td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td>${item.concepto}</td>
+                        <td></td>
+                        <td>S/${item.monto.toFixed(2)}</td>
+                    `;
+                }
+                
+                detalles.appendChild(tr);
+            });
+
+            document.getElementById('boleta-total-pagar').textContent = `S/${planilla.totalPagar.toFixed(2)}`;
+        }
+        
+        // Imprimir boleta
+        function imprimirBoleta() {
+            window.print();
+        }
+        
+        // Previsualizar foto
+        document.getElementById('foto-empleado').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('preview-foto');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Cargar datos al iniciar
+        // Cargar datos al iniciar - MODIFICADO COMPLETAMENTE
+        window.onload = function() {
+            // Siempre comenzar con array vacío
+            empleados = [];
+
+            // Establecer mes actual como valor por defecto
+            const hoy = new Date();
+            document.getElementById('mes-boleta').value = hoy.toISOString().slice(0, 7);
+            document.getElementById('mes-planilla').value = hoy.toISOString().slice(0, 7);
+        };
+
+    </script>
+</body>
+</html>
